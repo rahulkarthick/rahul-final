@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Crowd Analysis Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff !important;
+            color: #010409;
+        }
+
+        .glass-panel {
+            background: #ffffff;
+            border-bottom: 2px solid #e2e8f0;
+            z-index: 100;
+        }
+
+        .metric-card {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Custom Colors for Metrics */
+        .card-count {
+            background-color: #ebf5ff;
+            border-left: 5px solid #3b82f6;
+        }
+
+        .card-density {
+            background-color: #f3e8ff;
+            border-left: 5px solid #a855f7;
+        }
+
+        .card-motion {
+            background-color: #fefce8;
+            border-left: 5px solid #eab308;
+        }
+
+        .card-risk {
+            border-left: 8px solid #22c55e;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col bg-white">
+    <header class="glass-panel sticky top-0 px-8 py-5 flex justify-between items-center bg-white shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-full bg-blue-600 animate-pulse"></div>
+            <h1 class="text-2xl font-extrabold tracking-tighter text-blue-700 uppercase">Hybrid Crowd Analysis Dashboard
+            </h1>
+        </div>
+        <div class="text-sm font-bold text-slate-600 bg-slate-100 px-4 py-2 rounded-full flex items-center gap-2">
+            <span class="h-3 w-3 rounded-full bg-green-500"></span> System Online
+        </div>
+    </header>
+
+    <main class="flex-grow p-4 flex flex-col xl:flex-row gap-6 max-w-[1350px] mx-auto w-full bg-white">
+        <!-- Left: Video Feed -->
+        <div class="xl:w-2/3 flex flex-col gap-6">
+            <div class="metric-card rounded-2xl p-4 bg-white">
+                <div class="px-4 py-3 border-b border-slate-100 flex justify-between items-center mb-4">
+                    <h2 class="font-bold text-xl flex items-center gap-2 text-slate-800">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z">
+                            </path>
+                        </svg>
+                        CROWD MANAGEMENT
+                    </h2>
+                    <span id="risk-badge"
+                        class="px-4 py-1.5 rounded-full bg-green-100 text-green-700 text-sm font-black uppercase tracking-widest border border-green-200">SAFE</span>
+                </div>
+
+                <div
+                    class="relative w-full bg-slate-900 rounded-xl overflow-hidden shadow-inner border-2 border-slate-100">
+                    <img id="video-stream" src="/video_feed" alt="AI Feed" class="w-full h-auto block">
+                    <div id="loading-overlay"
+                        class="absolute inset-0 bg-white/95 flex items-center justify-center backdrop-blur-md hidden">
+                        <div class="text-center">
+                            <div
+                                class="inline-block animate-spin w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full mb-4">
+                            </div>
+                            <p class="text-slate-900 font-bold text-lg">Initializing Connection...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Source Controls -->
+                <div class="mt-6 p-6 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
+                    <h3 class="text-xs font-black text-slate-400 mb-4 uppercase tracking-[0.2em]">Input Configuration
+                    </h3>
+                    <div class="flex flex-col md:flex-row gap-6">
+                        <div class="flex-1">
+                            <label class="block text-xs font-bold text-slate-600 mb-2 uppercase">Local Video File
+                                (.mp4)</label>
+                            <div class="flex gap-2">
+                                <input type="file" id="video-upload" accept="video/mp4"
+                                    class="block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-6 file:rounded-md file:border-0 file:text-sm file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 bg-white border border-slate-300 rounded-md shadow-sm" />
+                                <button onclick="uploadVideo()"
+                                    class="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-md transition-all shadow-md active:scale-95">LOAD</button>
+                            </div>
+                        </div>
+                        <div class="flex-none flex items-end gap-3 w-full md:w-auto mt-4 md:mt-0">
+                            <button id="view-toggle-btn" onclick="toggleView()"
+                                class="px-8 py-2.5 w-full bg-white border-2 border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white font-bold rounded-md transition-all shadow-sm flex items-center justify-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                                FOCUS YOLO
+                            </button>
+                            <button onclick="useWebcam()"
+                                class="px-8 py-2.5 w-full bg-white border-2 border-green-600 text-green-600 hover:bg-green-600 hover:text-white font-bold rounded-md transition-all shadow-sm flex items-center justify-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                        d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z">
+                                    </path>
+                                </svg>
+                                WEBCAM
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Analytics -->
+        <div class="xl:w-1/3 flex flex-col gap-8">
+            <!-- Risk Level -->
+            <div id="risk-card" class="metric-card card-risk rounded-2xl p-8 bg-white overflow-hidden relative">
+                <div class="absolute -right-4 -bottom-4 text-slate-100 opacity-50">
+                    <svg class="w-40 h-40" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                            clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <h3 class="text-slate-400 text-xs font-black uppercase tracking-[0.3em] mb-2 relative z-10">Anomalous
+                    Activity Risk</h3>
+                <div id="risk-value" class="text-6xl font-black text-slate-900 mb-3 relative z-10">SAFE</div>
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest relative z-10">Decision Engine v2.1
+                </p>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Count Card -->
+                <div class="metric-card card-count rounded-2xl p-5">
+                    <h4
+                        class="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                            </path>
+                        </svg>
+                        Personnel Count
+                    </h4>
+                    <div id="count-value" class="text-4xl font-black text-blue-800">0</div>
+                </div>
+
+                <!-- Density Card -->
+                <div class="metric-card card-density rounded-2xl p-5">
+                    <h4
+                        class="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                            </path>
+                        </svg>
+                        Density
+                    </h4>
+                    <div class="flex items-baseline gap-1">
+                        <div id="density-value" class="text-4xl font-black text-purple-800">0.0</div>
+                        <span class="text-purple-400 font-bold text-sm">%</span>
+                    </div>
+                </div>
+
+                <!-- Motion Card -->
+                <div class="metric-card card-motion rounded-2xl p-5">
+                    <h4
+                        class="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 10V3L4 14h7v7l9-11h-7z">
+                            </path>
+                        </svg>
+                        Motion Score
+                    </h4>
+                    <div id="motion-value" class="text-4xl font-black text-yellow-800">0.00</div>
+                </div>
+
+                <!-- Anomaly Card -->
+                <div class="metric-card border-l-[5px] border-red-500 rounded-2xl p-5 bg-red-50">
+                    <h4
+                        class="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                            </path>
+                        </svg>
+                        Anomaly %
+                    </h4>
+                    <div class="flex items-baseline gap-1">
+                        <div id="anomaly-value" class="text-4xl font-black text-red-800">0.0</div>
+                        <span class="text-red-400 font-bold text-sm">%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Model Info -->
+            <div class="metric-card rounded-2xl p-6 mt-auto border-dashed">
+                <h5 class="text-slate-400 text-[10px] font-black uppercase tracking-[0.4em] mb-4">Neural Architecture
+                    Details</h5>
+                <ul class="space-y-3 text-sm font-bold text-slate-700">
+                    <li class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400">Object
+                            Detector</span> <span>YOLOv8n</span></li>
+                    <li class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-400">Heatmap
+                            Engine</span> <span id="csrnet-badge" class="text-orange-600">Spatial Fallback</span></li>
+                    <li class="flex justify-between"><span class="text-slate-400">Hardware Accel</span> <span
+                            class="text-green-600">APPLE MPS</span></li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const _targets = { count: 0, density: 0.0, motion: 0.0, anomaly_score: 0.0 };
+        const _current = { count: 0, density: 0.0, motion: 0.0, anomaly_score: 0.0 };
+        const LERP = 0.06;
+        let _lastRisk = "SAFE";
+
+        function animateMetrics() {
+            let dirty = false;
+            for (const key of ["count", "density", "motion", "anomaly_score"]) {
+                const diff = _targets[key] - _current[key];
+                if (Math.abs(diff) > 0.01) {
+                    _current[key] += diff * LERP;
+                    dirty = true;
+                }
+            }
+            if (dirty) {
+                document.getElementById('count-value').innerText = Math.round(_current.count);
+                document.getElementById('density-value').innerText = _current.density.toFixed(1);
+                document.getElementById('motion-value').innerText = _current.motion.toFixed(2);
+                let anomalyVal = document.getElementById('anomaly-value');
+                if (anomalyVal) anomalyVal.innerText = _current.anomaly_score.toFixed(1);
+            }
+            requestAnimationFrame(animateMetrics);
+        }
+        requestAnimationFrame(animateMetrics);
+
+        let isSourceLoaded = false;
+        let currentViewIdx = 4; // Starts on Grid View
+        
+        const presentationSequence = [
+            { origin: "0% 0%", scale: 2, nextTarget: "HEATMAP", current: "YOLO" },          // 0: Focuses Top-Left (YOLO)
+            { origin: "100% 0%", scale: 2, nextTarget: "OPTICAL FLOW", current: "HEATMAP" }, // 1: Focuses Top-Right (Heatmap)
+            { origin: "0% 100%", scale: 2, nextTarget: "RISK FUSION", current: "FLOW" },    // 2: Focuses Bottom-Left (Flow)
+            { origin: "100% 100%", scale: 2, nextTarget: "MULTI-GRID", current: "FUSION" }, // 3: Focuses Bottom-Right (Fusion)
+            { origin: "center center", scale: 1, nextTarget: "YOLO DETECT", current: "GRID" }// 4: Shows Full Grid
+        ];
+
+        function toggleView() {
+            currentViewIdx = (currentViewIdx + 1) % presentationSequence.length;
+            const vid = document.getElementById('video-stream');
+            const btn = document.getElementById('view-toggle-btn');
+            const view = presentationSequence[currentViewIdx];
+            
+            vid.style.transition = 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+            vid.style.transformOrigin = view.origin;
+            vid.style.transform = `scale(${view.scale})`;
+            
+            let btnClass = "px-8 py-2.5 w-full border-2 font-bold rounded-md transition-all shadow-sm flex items-center justify-center gap-2 ";
+            if (view.scale === 1) {
+                btnClass += "bg-white border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white";
+            } else {
+                btnClass += "bg-purple-600 border-purple-600 text-white shadow-md";
+            }
+            btn.className = btnClass;
+            
+            btn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> FOCUS ${view.nextTarget}`;
+        }
+
+        function fetchMetrics() {
+            if (!isSourceLoaded) return; // Don't fetch until user uploads something
+
+            fetch('/api/metrics').then(r => r.json()).then(data => {
+                _targets.count = data.count;
+                _targets.density = data.density;
+                _targets.motion = data.motion;
+                if (data.anomaly_score !== undefined) {
+                    _targets.anomaly_score = data.anomaly_score;
+                }
+
+                if (data.risk !== _lastRisk) { _lastRisk = data.risk; updateRiskUI(data.risk); }
+
+                const badge = document.getElementById('csrnet-badge');
+                if (data.csrnet_active) { badge.innerText = "CSRNet Active"; badge.className = "text-green-600"; }
+            }).catch(e => console.error("Poll error:", e));
+        }
+
+        function updateRiskUI(risk) {
+            const val = document.getElementById('risk-value');
+            const card = document.getElementById('risk-card');
+            const badge = document.getElementById('risk-badge');
+            if (val) val.innerText = risk;
+            if (badge) badge.innerText = risk;
+
+            if (risk === "HIGH RISK") {
+                if (card) card.style.borderLeftColor = "#ef4444";
+                if (val) val.className = "text-6xl font-black text-red-600 mb-3 relative z-10 animate-pulse";
+                if (badge) badge.className = "px-4 py-1.5 rounded-full bg-red-100 text-red-700 text-sm font-black border border-red-200 animate-bounce";
+            } else if (risk === "MODERATE") {
+                if (card) card.style.borderLeftColor = "#f97316";
+                if (val) val.className = "text-6xl font-black text-orange-600 mb-3 relative z-10";
+                if (badge) badge.className = "px-4 py-1.5 rounded-full bg-orange-100 text-orange-700 text-sm font-black border border-orange-200";
+            } else {
+                if (card) card.style.borderLeftColor = "#22c55e";
+                if (val) val.className = "text-6xl font-black text-slate-900 mb-3 relative z-10";
+                if (badge) badge.className = "px-4 py-1.5 rounded-full bg-green-100 text-green-700 text-sm font-black border border-green-200";
+            }
+        }
+
+        fetchMetrics(); setInterval(fetchMetrics, 1000);
+
+        function uploadVideo() {
+            const input = document.getElementById('video-upload');
+            if (!input.files[0]) return;
+            const body = new FormData(); body.append("file", input.files[0]);
+            document.getElementById('loading-overlay').classList.remove('hidden');
+            fetch('/api/set_source', { method: 'POST', body }).then(r => r.json()).then(d => {
+                setTimeout(() => {
+                    document.getElementById('video-stream').src = "/video_feed?" + Date.now();
+                    document.getElementById('loading-overlay').classList.add('hidden');
+                    isSourceLoaded = true; // Start pulling metrics
+                }, 1000);
+            });
+        }
+
+        function loadTestCase(source) {
+            document.getElementById('loading-overlay').classList.remove('hidden');
+            fetch('/api/set_source', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ source: source }) 
+            }).then(r => r.json()).then(d => {
+                setTimeout(() => {
+                    document.getElementById('video-stream').src = "/video_feed?" + Date.now();
+                    document.getElementById('loading-overlay').classList.add('hidden');
+                    isSourceLoaded = true; 
+                }, 1000);
+            });
+        }
+
+        function useWebcam() {
+            fetch('/api/set_source', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ source: 0 }) })
+                .then(r => r.json()).then(d => {
+                    document.getElementById('video-stream').src = "/video_feed?" + Date.now();
+                    isSourceLoaded = true; // Start pulling metrics
+                });
+        }
+
+        function takeThesisScreenshot() {
+            // Hide the button so it doesn't show in the screenshot
+            const btn = document.querySelector("button[onclick='takeThesisScreenshot()']");
+            if (btn) btn.style.display = "none";
+            
+            // Render the whole document body to canvas
+            html2canvas(document.body, { 
+                useCORS: true,
+                scale: 2 // High Resolution for Thesis printing
+            }).then(canvas => {
+                // Restore the button
+                if (btn) btn.style.display = "";
+                
+                // Create a download link for the PNG
+                let link = document.createElement('a');
+                let timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                link.download = `Dashboard_Screenshot_${_lastRisk}_${timestamp}.png`;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+            });
+        }
+    </script>
+</body>
+
+</html>

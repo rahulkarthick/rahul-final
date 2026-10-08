@@ -1,0 +1,56 @@
+# ─── Python ───────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ─── Virtual Environment ──────────────────────────────────────
+crowd_env/
+venv/
+env/
+.venv/
+
+# ─── Model Weights (large binary files) ──────────────────────
+# Use Git LFS or download instructions in README instead
+weights/*.pt
+models/csrnet/*.pth
+yolov8n.pt
+
+# ─── Dataset Files ────────────────────────────────────────────
+data/shanghaitech/
+data/videos/
+videos/
+
+# ─── Generated Outputs ────────────────────────────────────────
+outputs/heatmaps/
+outputs/logs/
+outputs/videos/
+logs/
+
+# ─── macOS Junk ───────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ─── Node.js ──────────────────────────────────────────────────
+node_modules/
+package-lock.json
+
+# ─── IDE / Editor ─────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ─── Jupyter Notebooks (checkpoints) ─────────────────────────
+.ipynb_checkpoints/
+
+# ─── Misc ─────────────────────────────────────────────────────
+*.log
+*.tmp
+*.bak
