@@ -480,7 +480,7 @@ POST /api/set_source      → Set video source (file upload or path)
 
 ## 👨‍💻 Author
 
-**Rahul Karthick**  
+**Rahul D**  
 *MCA Final Year Student — Anna University, Chennai*
 
 [![GitHub](https://img.shields.io/badge/GitHub-rahulkarthick-black?logo=github)](https://github.com/rahulkarthick)
